@@ -5,7 +5,7 @@ results = []
 elapsed_time = []
 failed = []
 
-failed = [{'a':57, 'b':40}, {'a':92, 'b':56},  {'a':79, 'b':53},  {'a':96, 'b':78}]#TODO
+# failed = [{'a':57, 'b':40}, {'a':92, 'b':56},  {'a':79, 'b':53},  {'a':96, 'b':78}]#TODO
 
 failed_ind = 0
     
