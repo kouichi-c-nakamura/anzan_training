@@ -3,7 +3,7 @@
 This is a simple training programm for multiplication of (up to) two digits integers.
 
 []()
-<img src="Screenshot 2023-10-30 at 09.48.26" alt="screenshot" title="サンプル">
+<img src="Screenshot 2023-10-30 at 09.48.26.png" alt="screenshot" title="サンプル">
 
 This is probably not for anzan (mental arithmetic) per se, but still helps.
 
