@@ -5,7 +5,7 @@ results = []
 elapsed_time = []
 failed = []
 
-# failed = [{'a':57, 'b':40}, {'a':92, 'b':56},  {'a':79, 'b':53},  {'a':96, 'b':78}]#TODO
+# failed = [{'a':15, 'b':11}, {'a':96, 'b':95},  {'a':76, 'b':35},  {'a':16, 'b':77}]#TODO
 
 failed_ind = 0
     
@@ -14,7 +14,7 @@ def show_problem(a, b, view):
     if view == 1:
         print(f"\n{a} x {b} =\n")
     elif view == 2:
-        print(f"\n  {a:02} \nx {b:02}\n-----\n")   
+        print(f"\n  {a:>2} \nx {b:>2}\n-----\n")   
 
 def get_ab_from_failures():
     if len(failed) == 0:
@@ -126,10 +126,11 @@ while keep_going:
 
     if not keep_going:
         print("Finished")
-        print(f"Success rate: {sum(results)/len(results) * 100:.1f} % ({sum(results)}/{len(results)})")
+        if len(results) > 0:
+            print(f"Success rate: {sum(results)/len(results) * 100:.1f} % ({sum(results)}/{len(results)})")
 
-        ave_time = sum(elapsed_time, datetime.timedelta(0)) / len(elapsed_time)
-        print(f"Average response time :{ave_time.seconds} sec\n")
+            ave_time = sum(elapsed_time, datetime.timedelta(0)) / len(elapsed_time)
+            print(f"Average response time :{ave_time.seconds} sec\n")
 
         failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
         print("Failed calculations")
@@ -160,6 +161,6 @@ if ans == "y" or ans == "Y":
             failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
             print("Failed calculations")
             print(failed_)
-
-
+else:
+    print("Good bye")
 #TODO save the record as csv file and append a row
