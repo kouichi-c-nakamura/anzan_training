@@ -2,6 +2,8 @@
 
 This is a simple training programm for multiplication of (up to) two digits integers.
 
+This is probably not for anzan (mental arithmetic) per se, but still helps.
+
 It has three courses:
 
 1. Genral
