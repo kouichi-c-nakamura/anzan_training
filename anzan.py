@@ -80,13 +80,13 @@ def run_trial(a, b):
         elapsed_time.append(td)
 
         if ans == a * b:
-            print(f"Correct! :)\n{a} x {b} = {a *b}\n\n")
+            print(f"Correct! :)\n{a} x {b} = {a *b}\n")
             results.append(1)
             if reviewing:
                 failed.pop(failed_ind) # remove successful item from failed during review process
 
         else:
-            print(f"Your answer {ans} is wrong:(\n{a} x {b} = {a *b}\n\n")
+            print(f"Your answer {ans} is wrong:(\n{a} x {b} = {a *b}\n")
             results.append(0)
             failed.append({'a':a,'b':b})
 
