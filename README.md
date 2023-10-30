@@ -1,6 +1,6 @@
 # anzan_training
 
-This is a simple training programm for multiplication of (up to) two digits integers.
+This is a simple training programm for multiplication of (up to) two-digit integers.
 
 []()
 <img src="Screenshot 2023-10-30 at 09.48.26.png" alt="screenshot" title="サンプル">
