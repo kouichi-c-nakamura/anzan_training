@@ -1,11 +1,18 @@
 from random import randint
 import datetime
+from matplotlib import pyplot as plt
 
+problems = []
 results = []
 elapsed_time = []
 failed = []
 
+plt.rcParams['axes.spines.top'] = False
+plt.rcParams['axes.spines.right'] = False
+plt.rcParams['font.family'] = ['Arial']
+
 # failed = [{'a':15, 'b':11}, {'a':96, 'b':95},  {'a':76, 'b':35},  {'a':16, 'b':77}]#TODO
+time_out_s = 20 # inclusive, elapsed time must be <= time_out_s
 
 failed_ind = 0
     
@@ -68,25 +75,39 @@ def run_trial(a, b):
     if ans == "q":
         keep_going = False
     else:
+        problems.append({'a':a,'b':b})
+
         keep_going = True
         try:
             ans = int(ans)
         except Exception as e:
             print('wrong input')
+            results.append(float("nan"))
             return keep_going
         td = dt2 - dt1
         minutes, seconds = divmod(td.seconds, 60)
         print(f"\n{minutes} min {seconds} sec\n")
         elapsed_time.append(td)
 
-        if ans == a * b:
-            print(f"Correct! :)\n{a} x {b} = {a *b}\n")
-            results.append(1)
-            if reviewing:
-                failed.pop(failed_ind) # remove successful item from failed during review process
+        if td.seconds <= time_out_s :
+            if ans == a * b:
+                print(f"Correct! :)\n{a} x {b} = {a *b}\n")
+                results.append(1)
+                if reviewing:
+                    failed.pop(failed_ind) # remove successful item from failed during review process
 
+            else:
+                print("\a") # didn't work
+                print(f"Your answer {ans} is wrong:(\n{a} x {b} = {a *b}\n")
+                results.append(0)
+                failed.append({'a':a,'b':b})
         else:
-            print(f"Your answer {ans} is wrong:(\n{a} x {b} = {a *b}\n")
+            print("\a") # didn't work
+            print('Too late')
+            if ans == a * b:
+                print(f"Correct! :)\n{a} x {b} = {a *b}\n")
+            else:
+                print(f"Your answer {ans} is wrong:(\n{a} x {b} = {a *b}\n")
             results.append(0)
             failed.append({'a':a,'b':b})
 
@@ -131,6 +152,31 @@ while keep_going:
 
             ave_time = sum(elapsed_time, datetime.timedelta(0)) / len(elapsed_time)
             print(f"Average response time :{ave_time.seconds} sec\n")
+
+            result_icons = ['X' for _ in results]
+            result_icons = ''.join(['O' if r else 'X' for r, i in zip(results, result_icons)])
+            print(result_icons)
+
+            plt.ion()
+            fig, ax = plt.subplots(1,1)
+
+            for i in range(0, len(elapsed_time)):
+                if results[i]:
+                    ax.plot(elapsed_time[i].seconds, i + 1, 'ok') #TODO change color and symbol according to result
+                else:
+                    ax.plot(elapsed_time[i].seconds, i + 1, 'xr')
+            ax.set_yticks([i + 1 for i in list(range(0, len(elapsed_time)))]) # +1
+            ax.set_xlabel('Time (s)')
+            xlim = ax.get_xlim()
+            ax.set_xlim(0, xlim[1])
+
+            problems_str =[f"{p['a']} x {p['b']}" for p in problems]
+            print(f"len(elapsed_time) = {len(elapsed_time)}")
+            print(f"len(problems_str) = {len(problems_str)}")
+            ax.set_yticklabels(problems_str) #TODO y is mismatching #TODO　ValueError: The number of FixedLocator locations (28), usually from a call to set_ticks, does not match the number of labels (29).
+            
+            plt.show()
+
 
         failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
         print("Failed calculations")
