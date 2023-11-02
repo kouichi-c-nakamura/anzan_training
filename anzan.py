@@ -1,7 +1,4 @@
-#TODO Keep the record for the pair of numbers
-#TODO rows 1 to 99, cols 1 to 99
-#TODO tables for success, failures, and rates
-#TODO use pandas
+#TODO plot_all()
 
 
 from random import randint
@@ -139,7 +136,7 @@ def run_trial(a, b):
     return keep_going
 
 
-def plot_time():
+def plot_time(elapsed_time, problems, results):
     plt.ion()
     fig, ax = plt.subplots(1,1)
 
@@ -163,6 +160,10 @@ def plot_time():
     ax.set_yticklabels(problems_str) 
     
     plt.show()    
+
+def plot_all():
+    ...
+    # read the saved table data and plot them
 
 def save_result_table():
     ## response time
@@ -238,13 +239,15 @@ def show_results():
         result_icons = ''.join(['O' if r else 'X' for r, i in zip(results, result_icons)])
         print(result_icons)
 
-        plot_time()
+        plot_time(elapsed_time, problems, results)
 
     failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
     print("Failed calculations")
     print(failed_)
 
     save_result_table()
+
+    plot_all()
 
 keep_going = True
 
@@ -305,7 +308,7 @@ if ans == "y" or ans == "Y":
             print("Finished")
             print(f"Success rate: {sum(results)/len(results) * 100:.1f} % ({sum(results)}/{len(results)})")
 
-            ave_time = sum(elapsed_time, datetime.timedelta(0)) / len(elapsed_time)
+            ave_time = sum(elapsed_time) / len(elapsed_time)
             print(f"Average response time :{ave_time.seconds} sec\n")
 
             failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
@@ -313,4 +316,3 @@ if ans == "y" or ans == "Y":
             print(failed_)
 else:
     print("Good bye")
-#TODO save the record as csv file and append a row
