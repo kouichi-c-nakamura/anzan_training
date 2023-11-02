@@ -1,17 +1,42 @@
+#TODO Keep the record for the pair of numbers
+#TODO rows 1 to 99, cols 1 to 99
+#TODO tables for success, failures, and rates
+#TODO use pandas
+
+
 from random import randint
 import datetime
 from matplotlib import pyplot as plt
+import pandas as pd
+import numpy as np
+import os
 
 problems = []
 results = []
 elapsed_time = []
 failed = []
+# failed = [{'a':15, 'b':11}, {'a':96, 'b':95},  {'a':76, 'b':35},  {'a':16, 'b':77}]#TODO
+
 
 plt.rcParams['axes.spines.top'] = False
 plt.rcParams['axes.spines.right'] = False
 plt.rcParams['font.family'] = ['Arial']
 
-# failed = [{'a':15, 'b':11}, {'a':96, 'b':95},  {'a':76, 'b':35},  {'a':16, 'b':77}]#TODO
+cwd = os.getcwd()
+excel_path = os.path.join(cwd,'anzan_log.xlsx')
+if os.path.isfile(excel_path):
+    ...
+    df_s = pd.read_excel(excel_path, sheet_name='successes')
+    df_f = pd.read_excel(excel_path, sheet_name='failures')
+    df_r = pd.read_excel(excel_path, sheet_name='rates')
+    df_t = pd.read_excel(excel_path, sheet_name='time')
+
+else:
+    df_s = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
+    df_f = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
+    df_r = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
+    df_t = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
+
 time_out_s = 20 # inclusive, elapsed time must be <= time_out_s
 
 failed_ind = 0
@@ -85,11 +110,11 @@ def run_trial(a, b):
             results.append(float("nan"))
             return keep_going
         td = dt2 - dt1
-        minutes, seconds = divmod(td.seconds, 60)
+        minutes, seconds = divmod(td.total_seconds(), 60)
         print(f"\n{minutes} min {seconds} sec\n")
-        elapsed_time.append(td)
+        elapsed_time.append(td.total_seconds())
 
-        if td.seconds <= time_out_s :
+        if td.total_seconds() <= time_out_s :
             if ans == a * b:
                 print(f"Correct! :)\n{a} x {b} = {a *b}\n")
                 results.append(1)
@@ -124,9 +149,9 @@ def plot_time():
 
     for i in range(0, len(elapsed_time_sorted)):
         if results_sorted[i]:
-            ax.plot(elapsed_time_sorted[i].seconds, i + 1, 'ok') #TODO change color and symbol according to result
+            ax.plot(elapsed_time_sorted[i], i + 1, 'ok')
         else:
-            ax.plot(elapsed_time_sorted[i].seconds, i + 1, 'xr')
+            ax.plot(elapsed_time_sorted[i], i + 1, 'xr')
     ax.set_yticks([i + 1 for i in list(range(0, len(elapsed_time_sorted)))]) # +1
     ax.set_xlabel('Time (s)')
     xlim = ax.get_xlim()
@@ -135,9 +160,91 @@ def plot_time():
     problems_str =[f"{p['a']} x {p['b']}" for p in problems_sorted]
     print(f"len(elapsed_time_sorted) = {len(elapsed_time_sorted)}")
     print(f"len(problems_str) = {len(problems_str)}")
-    ax.set_yticklabels(problems_str) #TODO y is mismatching #TODO　ValueError: The number of FixedLocator locations (28), usually from a call to set_ticks, does not match the number of labels (29).
+    ax.set_yticklabels(problems_str) 
     
     plt.show()    
+
+def save_result_table():
+    ## response time
+    problems_ = problems
+    # Ensure 'a' is always <= 'b'
+    for p in problems_:
+        if p['a'] > p['b']:
+            p['a'], p['b'] = p['b'], p['a']
+
+    combined = sorted(zip(problems_, elapsed_time), key=lambda x: (x[0]['a'], x[0]['b']))
+    problems_sorted, elapsed_time_sorted = zip(*combined)
+
+    for idx, p in enumerate(problems_sorted):
+        row_idx, col_idx = p['a'], p['b']
+
+        # Calculate new average
+
+        n = df_s.at[row_idx, col_idx] + df_f.at[row_idx, col_idx]
+        current_total_time = df_t.at[row_idx, col_idx] * n
+        new_total_time = current_total_time + elapsed_time_sorted[idx]
+
+        # Update df_t and df_n
+        df_t.at[row_idx, col_idx] = new_total_time / (n + 1)
+
+    ##successes and failures
+    # separate successes and failures
+    successful_problems = [problem for problem, result in zip(problems, results) if result == 1]
+    failed_problems = [problem for problem, result in zip(problems, results) if result == 0]
+
+    # make a <= b
+    for p in successful_problems:
+        if p['a'] > p['b']:
+            p['a'], p['b'] = p['b'], p['a']
+
+    for p in failed_problems:
+        if p['a'] > p['b']:
+            p['a'], p['b'] = p['b'], p['a']
+
+    # sort (a, b) pairs
+    successful_problems = sorted(successful_problems, key=lambda x: (x['a'], x['b']))
+    failed_problems = sorted(failed_problems, key=lambda x: (x['a'], x['b']))
+
+    # update values of cells
+    for p in successful_problems:
+        ...
+        if pd.isna(df_s.at[p['a'], p['b']]):
+            df_s.at[p['a'], p['b']] = 1
+        else:
+            df_s.at[p['a'], p['b']] += 1
+
+    # recompute rates
+    total_sum = df_s.fillna(0).sum().sum() + df_f.fillna(0).sum().sum()
+
+    df_r = (df_s.fillna(0) + df_f.fillna(0)) / total_sum
+
+       
+    ## save tables
+    with pd.ExcelWriter(excel_path) as writer:
+        df_s.to_excel(writer, sheet_name='successes')
+        df_f.to_excel(writer, sheet_name='failures')
+        df_r.to_excel(writer, sheet_name='rates')
+        df_t.to_excel(writer, sheet_name='time')
+
+def show_results():
+    print("Finished")
+    if len(results) > 0:
+        print(f"Success rate: {sum(results)/len(results) * 100:.1f} % ({sum(results)}/{len(results)})")
+
+        ave_time = sum(elapsed_time) / len(elapsed_time) #TODO
+        print(f"Average response time :{ave_time} sec\n")
+
+        result_icons = ['X' for _ in results]
+        result_icons = ''.join(['O' if r else 'X' for r, i in zip(results, result_icons)])
+        print(result_icons)
+
+        plot_time()
+
+    failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
+    print("Failed calculations")
+    print(failed_)
+
+    save_result_table()
 
 keep_going = True
 
@@ -148,12 +255,16 @@ elif ans == 2:
     course = 2
 elif ans == 3:
     course = 3
+else:
+    raise ValueError("course has an invalid value")
 
 ans = int(input("Type 1 for horizontal view, 2 for stack view\n>"))
 if ans == 1:
     view = 1
 elif ans == 2:
     view = 2
+else:
+    raise ValueError("view has an invalid value")
 
 reviewing = False
 while keep_going:
@@ -172,23 +283,8 @@ while keep_going:
     keep_going = run_trial(a, b)
 
     if not keep_going:
-        print("Finished")
-        if len(results) > 0:
-            print(f"Success rate: {sum(results)/len(results) * 100:.1f} % ({sum(results)}/{len(results)})")
+        show_results()
 
-            ave_time = sum(elapsed_time, datetime.timedelta(0)) / len(elapsed_time)
-            print(f"Average response time :{ave_time.seconds} sec\n")
-
-            result_icons = ['X' for _ in results]
-            result_icons = ''.join(['O' if r else 'X' for r, i in zip(results, result_icons)])
-            print(result_icons)
-
-            plot_time()
-
-
-        failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
-        print("Failed calculations")
-        print(failed_)
 
 ans = input("Do you want to practice the failed problems again? Y/N\n>")
 
