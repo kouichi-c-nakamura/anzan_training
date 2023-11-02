@@ -113,6 +113,32 @@ def run_trial(a, b):
 
     return keep_going
 
+
+def plot_time():
+    plt.ion()
+    fig, ax = plt.subplots(1,1)
+
+    zipped = list(zip(elapsed_time, problems, results))
+    zipped_sorted = sorted(zipped, key=lambda x: x[0])
+    elapsed_time_sorted, problems_sorted, results_sorted = zip(*zipped_sorted)
+
+    for i in range(0, len(elapsed_time_sorted)):
+        if results_sorted[i]:
+            ax.plot(elapsed_time_sorted[i].seconds, i + 1, 'ok') #TODO change color and symbol according to result
+        else:
+            ax.plot(elapsed_time_sorted[i].seconds, i + 1, 'xr')
+    ax.set_yticks([i + 1 for i in list(range(0, len(elapsed_time_sorted)))]) # +1
+    ax.set_xlabel('Time (s)')
+    xlim = ax.get_xlim()
+    ax.set_xlim(0, xlim[1])
+
+    problems_str =[f"{p['a']} x {p['b']}" for p in problems_sorted]
+    print(f"len(elapsed_time_sorted) = {len(elapsed_time_sorted)}")
+    print(f"len(problems_str) = {len(problems_str)}")
+    ax.set_yticklabels(problems_str) #TODO y is mismatching #TODO　ValueError: The number of FixedLocator locations (28), usually from a call to set_ticks, does not match the number of labels (29).
+    
+    plt.show()    
+
 keep_going = True
 
 ans = int(input("Type 1 for general, 2 for Indian, 3 for mixed\n>"))
@@ -157,25 +183,7 @@ while keep_going:
             result_icons = ''.join(['O' if r else 'X' for r, i in zip(results, result_icons)])
             print(result_icons)
 
-            plt.ion()
-            fig, ax = plt.subplots(1,1)
-
-            for i in range(0, len(elapsed_time)):
-                if results[i]:
-                    ax.plot(elapsed_time[i].seconds, i + 1, 'ok') #TODO change color and symbol according to result
-                else:
-                    ax.plot(elapsed_time[i].seconds, i + 1, 'xr')
-            ax.set_yticks([i + 1 for i in list(range(0, len(elapsed_time)))]) # +1
-            ax.set_xlabel('Time (s)')
-            xlim = ax.get_xlim()
-            ax.set_xlim(0, xlim[1])
-
-            problems_str =[f"{p['a']} x {p['b']}" for p in problems]
-            print(f"len(elapsed_time) = {len(elapsed_time)}")
-            print(f"len(problems_str) = {len(problems_str)}")
-            ax.set_yticklabels(problems_str) #TODO y is mismatching #TODO　ValueError: The number of FixedLocator locations (28), usually from a call to set_ticks, does not match the number of labels (29).
-            
-            plt.show()
+            plot_time()
 
 
         failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
