@@ -203,7 +203,7 @@ def plot_all():
     norm = plt.Normalize(min_val, max_val)
 
     # Choose a colormap
-    colormap = plt.cm.Spectral
+    colormap = plt.cm.cool_r
 
     x_values = [item['t'] for item in res_sorted]
     y_values = list(range(1, len(res_sorted) + 1))
@@ -252,7 +252,7 @@ def save_result_table():
         new_total_time = current_total_time + elapsed_time_sorted[idx]
 
         # Update df_t and df_n
-        df_t.at[row_idx, col_idx] = new_total_time / (n + 1) #TODO dtype
+        df_t.at[row_idx, col_idx] = new_total_time / (n + 1)
 
     ##successes and failures
     # separate successes and failures
@@ -278,6 +278,12 @@ def save_result_table():
             df_s.at[p['a'], p['b']] = 1
         else:
             df_s.at[p['a'], p['b']] += 1
+    
+    for p in failed_problems:
+        if pd.isna(df_f.at[p['a'], p['b']]): # if for the first time
+            df_f.at[p['a'], p['b']] = 1
+        else:
+            df_f.at[p['a'], p['b']] += 1
 
     # recompute rates
     df_r = df_s.fillna(0)  / (df_s.fillna(0) + df_f.fillna(0))
