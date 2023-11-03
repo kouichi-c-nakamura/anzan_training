@@ -13,6 +13,8 @@ It has three courses:
 2. Indian
 3. Mixed
 
+## Methods of calculation
+
 In the Indian course (2), probelms are designed to work with so called Indian calculations.
 
 There are three types.
