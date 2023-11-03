@@ -1,12 +1,16 @@
-#TODO plot_all()
+#TODO plot_all() test
+#TODO ds_s etc have row 0 and not row 99
+#TODO ds_s etc have Unnamed:0, 
 
 
+from random import random
 from random import randint
 import datetime
 from matplotlib import pyplot as plt
 import pandas as pd
-import numpy as np
+# import numpy as np
 import os
+import mplcursors # need to install
 
 problems = []
 results = []
@@ -21,12 +25,11 @@ plt.rcParams['font.family'] = ['Arial']
 
 cwd = os.getcwd()
 excel_path = os.path.join(cwd,'anzan_log.xlsx')
-if os.path.isfile(excel_path):
-    ...
-    df_s = pd.read_excel(excel_path, sheet_name='successes')
-    df_f = pd.read_excel(excel_path, sheet_name='failures')
-    df_r = pd.read_excel(excel_path, sheet_name='rates')
-    df_t = pd.read_excel(excel_path, sheet_name='time')
+if os.path.isfile(excel_path):    
+    df_s = pd.read_excel(excel_path, index_col=0, sheet_name='successes')
+    df_f = pd.read_excel(excel_path, index_col=0, sheet_name='failures')
+    df_r = pd.read_excel(excel_path, index_col=0, sheet_name='rates')
+    df_t = pd.read_excel(excel_path, index_col=0, sheet_name='time')
 
 else:
     df_s = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
@@ -45,6 +48,16 @@ def show_problem(a, b, view):
     elif view == 2:
         print(f"\n  {a:>2} \nx {b:>2}\n-----\n")   
 
+def biased_randint(min_val, max_val, bias=0.5):
+    """Generate a biased random integer between min_val and max_val.
+
+    With a bias value of 0.5, numbers towards the higher end (like 6,7,8,9 in tens place)
+    will be more probable. Adjusting the bias will change the skewness. A bias of 1 will 
+    give you a uniform distribution, values less than 1 will skew towards the maximum, 
+    and values greater than 1 will skew towards the minimum.
+    """
+    return int(min_val + (max_val - min_val) * (random() ** bias))
+
 def get_ab_from_failures():
     if len(failed) == 0:
         return 0, 0
@@ -55,8 +68,11 @@ def get_ab_from_failures():
     return a, b
 
 def get_ab_general():
-    a = randint(1,99)
-    b = randint(1,99)
+    # a = randint(1,99)
+    a = biased_randint(1,99,randbias)
+    # b = randint(1,99)
+    b = biased_randint(1,99,randbias)
+
     return a, b
 
 def get_ab_Indian():
@@ -159,11 +175,62 @@ def plot_time(elapsed_time, problems, results):
     print(f"len(problems_str) = {len(problems_str)}")
     ax.set_yticklabels(problems_str) 
     
-    plt.show()    
+    plt.show()
 
 def plot_all():
     ...
+    # read the latest data
+    df_s = pd.read_excel(excel_path, index_col=0, sheet_name='successes')
+    df_f = pd.read_excel(excel_path, index_col=0, sheet_name='failures')
+    df_r = pd.read_excel(excel_path, index_col=0, sheet_name='rates')
+    df_t = pd.read_excel(excel_path, index_col=0, sheet_name='time')
+
+    # create lists
+    res_all = []
+    for i in range(1,100):
+        for j in range(1,100):
+            if df_s[i][j] + df_f[i][j] > 0: # remove the empty cells #TODO KeyError: 99
+                res_all.append({'a':i, 'b':j, 'n':df_s[i][j] + df_f[i][j], 
+                            's':df_s[i][j], 'f':df_f[i][j], 
+                            'r':df_r[i][j], 't':df_t[i][j]})
+
+    # sort l_all
+    res_sorted = sorted(res_all, key=lambda x: x['t'])
+
     # read the saved table data and plot them
+    plt.ion()
+    fig, ax = plt.subplots(1,1)
+
+    max_val = max(item['r'] for item in res_sorted)
+    min_val = min(item['r'] for item in res_sorted)
+    norm = plt.Normalize(min_val, max_val)
+
+    # Choose a colormap
+    colormap = plt.cm.viridis
+
+    def update_annot(ind):
+        # Get the index of the hovered point
+        index = ind["ind"][0]
+        
+        # Fetch the corresponding values from res_sorted
+        a_val = res_sorted[index]['a']
+        b_val = res_sorted[index]['b']
+        
+        # Return the desired label
+        return f"{a_val} x {b_val}"
+    
+    # Get the colors from the colormap
+    colors = colormap(norm([r['r'] for r in res_sorted]))
+    for i in range(0, len(res_sorted)):
+        sc = ax.scatter(res_sorted[i]['t'], i + 1, color=colors[i], s=100)
+
+        mplcursors.cursor(sc, hover=True).connect("add", update_annot)
+
+    ax.set_xlabel('Time (s)')
+    xlim = ax.get_xlim()
+    ax.set_xlim(0, xlim[1])
+    
+    plt.show()
 
 def save_result_table():
     ## response time
@@ -222,10 +289,10 @@ def save_result_table():
        
     ## save tables
     with pd.ExcelWriter(excel_path) as writer:
-        df_s.to_excel(writer, sheet_name='successes')
-        df_f.to_excel(writer, sheet_name='failures')
-        df_r.to_excel(writer, sheet_name='rates')
-        df_t.to_excel(writer, sheet_name='time')
+        df_s.to_excel(writer, index=True, sheet_name='successes')
+        df_f.to_excel(writer, index=True, sheet_name='failures')
+        df_r.to_excel(writer, index=True, sheet_name='rates')
+        df_t.to_excel(writer, index=True, sheet_name='time')
 
 def show_results():
     print("Finished")
@@ -251,6 +318,7 @@ def show_results():
 
 keep_going = True
 
+#TODO GUI for preference?
 ans = int(input("Type 1 for general, 2 for Indian, 3 for mixed\n>"))
 if ans == 1:
     course = 1
@@ -268,6 +336,15 @@ elif ans == 2:
     view = 2
 else:
     raise ValueError("view has an invalid value")
+
+#TODO ask if you want to use biased random number generation
+ans = float(input("Type 1 for uniform randomness, <1 for biased to have larger digits\n>"))
+if ans == 1:
+    randbias = 1
+else:#
+    randbias = 2 # to be biased to include larger numbers, 6,7 ,8, 9
+
+
 
 reviewing = False
 while keep_going:
