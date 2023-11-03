@@ -1,7 +1,4 @@
-#TODO plot_all() test
-#TODO ds_s etc have row 0 and not row 99
-#TODO ds_s etc have Unnamed:0, 
-
+#TODO failure is not counted properly in history
 
 from random import random
 from random import randint
@@ -10,7 +7,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 # import numpy as np
 import os
-import mplcursors # need to install
+import mplcursors # need to install: pip install mplcursors
 
 problems = []
 results = []
@@ -174,11 +171,11 @@ def plot_time(elapsed_time, problems, results):
     print(f"len(elapsed_time_sorted) = {len(elapsed_time_sorted)}")
     print(f"len(problems_str) = {len(problems_str)}")
     ax.set_yticklabels(problems_str) 
+    plt.title("Session")
     
     plt.show()
 
 def plot_all():
-    ...
     # read the latest data
     df_s = pd.read_excel(excel_path, index_col=0, sheet_name='successes')
     df_f = pd.read_excel(excel_path, index_col=0, sheet_name='failures')
@@ -206,29 +203,31 @@ def plot_all():
     norm = plt.Normalize(min_val, max_val)
 
     # Choose a colormap
-    colormap = plt.cm.viridis
+    colormap = plt.cm.Spectral
+
+    x_values = [item['t'] for item in res_sorted]
+    y_values = list(range(1, len(res_sorted) + 1))
+    colors = colormap(norm([r['r'] for r in res_sorted]))
+
+    # Create a single scatter plot with all points
+    sc = ax.scatter(x_values, y_values, color=colors, s=100)
+
+    tooltips = [f"{r['a']} \u00D7 {r['a']}\n" + 
+                f"{r['r']*100} % ({r['s']} of {r['s'] + r['f']})\n" + 
+                f"{r['t']:.1f} sec" for r in res_sorted]
 
     def update_annot(ind):
-        # Get the index of the hovered point
-        index = ind["ind"][0]
-        
-        # Fetch the corresponding values from res_sorted
-        a_val = res_sorted[index]['a']
-        b_val = res_sorted[index]['b']
-        
-        # Return the desired label
-        return f"{a_val} x {b_val}"
+        return tooltips[ind]
     
-    # Get the colors from the colormap
-    colors = colormap(norm([r['r'] for r in res_sorted]))
-    for i in range(0, len(res_sorted)):
-        sc = ax.scatter(res_sorted[i]['t'], i + 1, color=colors[i], s=100)
+    def on_hover(sel):
+        sel.annotation.set_text(update_annot(sel.index))
 
-        mplcursors.cursor(sc, hover=True).connect("add", update_annot)
+    mplcursors.cursor(sc, hover=True).connect("add", on_hover)
 
     ax.set_xlabel('Time (s)')
     xlim = ax.get_xlim()
     ax.set_xlim(0, xlim[1])
+    plt.title("History")
     
     plt.show()
 
@@ -253,7 +252,7 @@ def save_result_table():
         new_total_time = current_total_time + elapsed_time_sorted[idx]
 
         # Update df_t and df_n
-        df_t.at[row_idx, col_idx] = new_total_time / (n + 1)
+        df_t.at[row_idx, col_idx] = new_total_time / (n + 1) #TODO dtype
 
     ##successes and failures
     # separate successes and failures
@@ -275,16 +274,13 @@ def save_result_table():
 
     # update values of cells
     for p in successful_problems:
-        ...
-        if pd.isna(df_s.at[p['a'], p['b']]):
+        if pd.isna(df_s.at[p['a'], p['b']]): # if for the first time
             df_s.at[p['a'], p['b']] = 1
         else:
             df_s.at[p['a'], p['b']] += 1
 
     # recompute rates
-    total_sum = df_s.fillna(0).sum().sum() + df_f.fillna(0).sum().sum()
-
-    df_r = (df_s.fillna(0) + df_f.fillna(0)) / total_sum
+    df_r = df_s.fillna(0)  / (df_s.fillna(0) + df_f.fillna(0))
 
        
     ## save tables
