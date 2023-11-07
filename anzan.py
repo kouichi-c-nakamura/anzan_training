@@ -1,4 +1,3 @@
-#TODO failure is not counted properly in history
 
 from random import random
 from random import randint
@@ -25,14 +24,14 @@ excel_path = os.path.join(cwd,'anzan_log.xlsx')
 if os.path.isfile(excel_path):    
     df_s = pd.read_excel(excel_path, index_col=0, sheet_name='successes')
     df_f = pd.read_excel(excel_path, index_col=0, sheet_name='failures')
-    df_r = pd.read_excel(excel_path, index_col=0, sheet_name='rates')
-    df_t = pd.read_excel(excel_path, index_col=0, sheet_name='time')
+    df_r = pd.read_excel(excel_path, index_col=0, sheet_name='rates').astype(float) #float
+    df_t = pd.read_excel(excel_path, index_col=0, sheet_name='time').astype(float) #float
 
 else:
     df_s = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
     df_f = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
-    df_r = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
-    df_t = pd.DataFrame(0, index=range(1, 100), columns=range(1, 100))
+    df_r = pd.DataFrame(float(0), index=range(1, 100), columns=range(1, 100)).astype(float)
+    df_t = pd.DataFrame(float(0), index=range(1, 100), columns=range(1, 100)).astype(float)
 
 time_out_s = 20 # inclusive, elapsed time must be <= time_out_s
 
@@ -179,8 +178,8 @@ def plot_all():
     # read the latest data
     df_s = pd.read_excel(excel_path, index_col=0, sheet_name='successes')
     df_f = pd.read_excel(excel_path, index_col=0, sheet_name='failures')
-    df_r = pd.read_excel(excel_path, index_col=0, sheet_name='rates')
-    df_t = pd.read_excel(excel_path, index_col=0, sheet_name='time')
+    df_r = pd.read_excel(excel_path, index_col=0, sheet_name='rates').astype(float)
+    df_t = pd.read_excel(excel_path, index_col=0, sheet_name='time').astype(float)
 
     # create lists
     res_all = []
@@ -212,7 +211,7 @@ def plot_all():
     # Create a single scatter plot with all points
     sc = ax.scatter(x_values, y_values, color=colors, s=100)
 
-    tooltips = [f"{r['a']} \u00D7 {r['a']}\n" + 
+    tooltips = [f"{r['a']} \u00D7 {r['b']}\n" + 
                 f"{r['r']*100} % ({r['s']} of {r['s'] + r['f']})\n" + 
                 f"{r['t']:.1f} sec" for r in res_sorted]
 
@@ -252,7 +251,7 @@ def save_result_table():
         new_total_time = current_total_time + elapsed_time_sorted[idx]
 
         # Update df_t and df_n
-        df_t.at[row_idx, col_idx] = new_total_time / (n + 1)
+        df_t.at[row_idx, col_idx] = new_total_time / float(n + 1)
 
     ##successes and failures
     # separate successes and failures
@@ -388,7 +387,7 @@ if ans == "y" or ans == "Y":
             print(f"Success rate: {sum(results)/len(results) * 100:.1f} % ({sum(results)}/{len(results)})")
 
             ave_time = sum(elapsed_time) / len(elapsed_time)
-            print(f"Average response time :{ave_time.seconds} sec\n")
+            print(f"Average response time :{ave_time} sec\n")
 
             failed_ =  [ f"{f['a']} x {f['b']} = {f['a'] * f['b']}" for f in failed]
             print("Failed calculations")
