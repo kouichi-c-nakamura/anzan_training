@@ -1,4 +1,5 @@
-
+#TODO practice mode for the ones that required 10+, or 20+ s previously
+#TODO prorgam to train two digits additions and subtractions
 from random import random
 from random import randint
 import datetime
@@ -36,6 +37,12 @@ else:
 time_out_s = 20 # inclusive, elapsed time must be <= time_out_s
 
 failed_ind = 0
+
+failed_in_the_past = []
+for row_index, row in df_f.iterrows():
+    for col_index, value in row.items():
+        if value != 0:
+            failed_in_the_past.append({'a': row_index, 'b': col_index})
     
 def show_problem(a, b, view):
 
@@ -61,6 +68,21 @@ def get_ab_from_failures():
     failed_ind = randint(0, len(failed)-1)
     a = failed[failed_ind]['a']
     b = failed[failed_ind]['b']
+    return a, b
+
+def get_ab_from_failures_in_the_past():
+    # randomly choose a and b from the failures in the past
+    # Iterate over the DataFrame to find non-zero cells
+
+    ind = randint(0, len(failed_in_the_past)-1)
+
+    if randint(0,1):
+        a = failed_in_the_past[ind]['a']
+        b = failed_in_the_past[ind]['b']
+    else:
+        a = failed_in_the_past[ind]['b']
+        b = failed_in_the_past[ind]['a']
+
     return a, b
 
 def get_ab_general():
@@ -320,13 +342,15 @@ def show_results():
 keep_going = True
 
 #TODO GUI for preference?
-ans = int(input("Type 1 for general, 2 for Indian, 3 for mixed\n>"))
+ans = int(input("Type 1 for general, 2 for Indian, 3 for mixed, 4 for review\n>"))
 if ans == 1:
     course = 1
 elif ans == 2:
     course = 2
 elif ans == 3:
     course = 3
+elif ans == 4:
+    course = 4
 else:
     raise ValueError("course has an invalid value")
 
@@ -339,11 +363,12 @@ else:
     raise ValueError("view has an invalid value")
 
 #TODO ask if you want to use biased random number generation
-ans = float(input("Type 1 for uniform randomness, <1 for biased to have larger digits\n>"))
-if ans == 1:
-    randbias = 1
-else:#
-    randbias = 2 # to be biased to include larger numbers, 6,7 ,8, 9
+if course != 4:
+    ans = float(input("Type 1 for uniform randomness, <1 for biased to have larger digits\n>"))
+    if ans == 1:
+        randbias = 1
+    else:#
+        randbias = 2 # to be biased to include larger numbers, 6,7 ,8, 9
 
 
 
@@ -360,7 +385,9 @@ while keep_going:
             a, b = get_ab_general()
         else:
             a, b = get_ab_Indian()
-    
+    elif course == 4:
+        a, b = get_ab_from_failures_in_the_past()
+
     keep_going = run_trial(a, b)
 
     if not keep_going:
