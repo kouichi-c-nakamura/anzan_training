@@ -119,6 +119,15 @@ def get_ab_Indian():
         a = b_ * 10 + a_ 
         b = c_ * 10 + a_     
     return a, b
+def get_ab_two_by_one():
+    tf = randint(0,1)
+    if tf:
+        a = randint(1,9)
+        b = randint(1,99)
+    else:
+        a = randint(1,99)
+        b = randint(1,9)
+    return a, b
 
 def run_trial(a, b):
 
@@ -342,7 +351,7 @@ def show_results():
 keep_going = True
 
 #TODO GUI for preference?
-ans = int(input("Type 1 for general, 2 for Indian, 3 for mixed, 4 for review\n>"))
+ans = int(input("Type 1 for general, 2 for Indian, 3 for mixed, 4 for 00 x 0, 5 for review\n>"))
 if ans == 1:
     course = 1
 elif ans == 2:
@@ -351,6 +360,8 @@ elif ans == 3:
     course = 3
 elif ans == 4:
     course = 4
+elif ans == 5:
+    course = 5
 else:
     raise ValueError("course has an invalid value")
 
@@ -363,7 +374,7 @@ else:
     raise ValueError("view has an invalid value")
 
 #TODO ask if you want to use biased random number generation
-if course != 4:
+if course != 5:
     ans = float(input("Type 1 for uniform randomness, <1 for biased to have larger digits\n>"))
     if ans == 1:
         randbias = 1
@@ -386,6 +397,8 @@ while keep_going:
         else:
             a, b = get_ab_Indian()
     elif course == 4:
+        a, b = get_ab_two_by_one()
+    elif course == 5:
         a, b = get_ab_from_failures_in_the_past()
 
     keep_going = run_trial(a, b)
