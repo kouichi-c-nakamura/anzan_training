@@ -49,7 +49,10 @@ def show_problem(a, b, view):
     if view == 1:
         print(f"\n{a} x {b} =\n")
     elif view == 2:
-        print(f"\n  {a:>2} \nx {b:>2}\n-----\n")   
+        if course == 6:
+            print(f"\n  {a:>3} \nx {b:>3}\n-----\n")   
+        else:
+            print(f"\n  {a:>2} \nx {b:>2}\n-----\n")   
 
 def biased_randint(min_val, max_val, bias=0.5):
     """Generate a biased random integer between min_val and max_val.
@@ -130,13 +133,17 @@ def get_ab_two_by_one():
     return a, b
 
 def get_ab_three_by_one():
-    tf = randint(0,1)
-    if tf:
-        a = randint(1,9)
-        b = randint(100,999)
-    else:
+    if view == 2:
         a = randint(100,999)
-        b = randint(1,9)
+        b = randint(1,9)        
+    else:
+        tf = randint(0,1)
+        if tf:
+            a = randint(1,9)
+            b = randint(100,999)
+        else:
+            a = randint(100,999)
+            b = randint(1,9)
     return a, b
 
 def run_trial(a, b):
