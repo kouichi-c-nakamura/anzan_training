@@ -135,15 +135,15 @@ def get_ab_two_by_one():
 def get_ab_three_by_one():
     if view == 2:
         a = randint(100,999)
-        b = randint(1,9)        
+        b = randint(2,9)        
     else:
         tf = randint(0,1)
         if tf:
-            a = randint(1,9)
+            a = randint(2,9)
             b = randint(100,999)
         else:
             a = randint(100,999)
-            b = randint(1,9)
+            b = randint(2,9)
     return a, b
 
 def run_trial(a, b):
